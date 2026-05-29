@@ -1,0 +1,11 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Coding Guidelines",
+      "description": "Learn a team's real conventions from its code and PR review comments, then write and fix code that passes review the first time.",
+      "skills": ["learn-coding", "coding", "fix-me-bug"]
+    }
+  ]
+}
