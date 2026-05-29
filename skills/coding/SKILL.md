@@ -1,6 +1,6 @@
 ---
 name: coding
-description: Use when writing or changing any code, in any language, before and while implementing. Applies the team's learned conventions from .coding/coding-guidelines.md on top of a strict baseline so the change passes review the first time instead of getting re-commented by a coworker or lead. Run learn-coding first to generate the conventions; without them, this falls back to generic baseline rules.
+description: Use when writing or changing any code, in any language, before and while implementing. Applies the team's learned conventions from .coding/ on top of a strict baseline so the change passes review the first time instead of getting re-commented; falls back to the baseline when no learned conventions exist.
 ---
 
 # coding
@@ -35,8 +35,8 @@ If the learned file contradicts the baseline (e.g. team allows longer functions)
 
 ## Workflow
 
-### Before writing — discover & reuse
-- **Search before you create.** Grep/glob for an existing function, component, type, or pattern that does this. Reuse > extend > compose > create-new (in that order). Don't add a near-duplicate of something that exists. (Baseline §Architecture.)
+### Before writing — search and reuse (mandatory)
+- **Always** grep/glob for an existing function, component, type, or pattern before creating one. Order: **reuse > extend > compose > create-new**. If the search returns anything usable, use it — do not add a near-duplicate. Create-new only when the search genuinely returns nothing. (Baseline §Architecture.)
 - Match the surrounding code's style, naming, and structure — read a neighbor file first.
 
 ### While writing — apply the rules
@@ -80,7 +80,8 @@ These thoughts mean you're about to get re-commented:
 | "Nesting is fine here" | Guard clauses. Flat code reviews faster. |
 | "Small refactor while I'm here" | One concern per PR. Split it. |
 | "Lint will probably pass" | Run it. Assumptions get re-commented. |
-| "The learned rule seems wrong" | Follow it (or use `## Manual overrides`); don't silently override the team. |
+| "The learned rule seems wrong" | DON'T silently override it. Follow it as written, or change `## Manual overrides` with team buy-in. A silent override is a guaranteed re-comment. |
+| "Step 0 is optional, I'll skip it" | Then you apply generic baseline to a repo that has learned rules — and get the exact comments this skill exists to prevent. Read `.coding/` first, every task. |
 
 ## Common mistakes
 

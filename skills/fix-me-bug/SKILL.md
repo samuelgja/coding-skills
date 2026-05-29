@@ -1,6 +1,6 @@
 ---
 name: fix-me-bug
-description: Use when fixing any bug, regression, failing test, crash, or unexpected behavior. Test-first workflow — write a failing test that reproduces the bug, make the minimal root-cause fix, then verify. Also reads .coding/coding-guidelines.md so the fix follows the team's conventions and doesn't draw new review comments. Escalates after repeated failed attempts instead of stacking fixes.
+description: Use when fixing any bug, regression, failing test, crash, or unexpected behavior in any language or codebase. Test-first, root-cause bug fixing that also follows the team's learned conventions from .coding/ so the fix doesn't draw new review comments.
 ---
 
 # fix-me-bug
@@ -77,10 +77,15 @@ Same as FAST PATH steps 1–4 — now that you understand it, encode the bug as 
 5. Run the full suite once at the end to catch interactions.
 
 ## Escalation — 3 failed attempts? STOP.
-Don't attempt fix #4. The architecture is fighting you. Tell the user:
+Don't attempt fix #4. Ever. On the 3rd failed attempt, escalate — this is not a suggestion. Stacking fixes masks and compounds the real (often architectural) problem. Tell the user:
 - What you tried and why each attempt failed.
 - Whether this needs a redesign vs a patch.
 - Ask how they want to proceed.
+
+| Rationalization | Reality |
+|-----------------|---------|
+| "I'm very close on attempt #3" | You're not. Escalate. |
+| "Just one more quick fix" | That's fix #4. Forbidden. Escalate now. |
 
 ## When stuck
 
@@ -89,7 +94,7 @@ Don't attempt fix #4. The architecture is fighting you. Tell the user:
 | Can't reproduce | Add logging at each layer. Run once. Read output. |
 | Test passes (expected fail) | Understanding is wrong → DEEP PATH. |
 | Fix didn't work | New hypothesis. Don't stack fixes on failed ones. |
-| Can't write a test | Shrink it — test the smallest unit where the bug occurs. |
+| Can't write a test | Narrow to the smallest unit where the *actual* behavior breaks (not a downstream symptom). A valid test FAILS on the buggy code — if it passes, you isolated the wrong thing. |
 | Test errors (not fails) | Fix setup: imports, fixtures, assertions. |
 
 ## Companion skills

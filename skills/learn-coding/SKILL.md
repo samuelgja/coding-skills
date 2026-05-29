@@ -1,6 +1,6 @@
 ---
 name: learn-coding
-description: Use when you want code to match a specific team's real conventions — onboarding to an unfamiliar repo, or when reviewers keep flagging the same things. Mines the repo's code, config, and pull-request review comments (weighting owners and maintainers) with gh and git to learn what the team actually enforces, then writes the rules to .coding/. Re-run anytime to refresh.
+description: Use when onboarding to an unfamiliar repo, or when reviewers keep flagging the same things on your pull requests. Learns a team's real coding conventions from the repo's code, config, and PR review comments (weighting owners and maintainers) and writes them to .coding/. Re-run anytime to refresh.
 ---
 
 # learn-coding
@@ -35,22 +35,11 @@ Tell the user to **commit `.coding/`** so the whole team shares one learned stan
 
 ## Workflow
 
-```dot
-digraph learn {
-  "Preflight" [shape=box];
-  "Authority list" [shape=box];
-  "Pass 1: declared rules" [shape=box];
-  "Pass 2: enforced rules" [shape=box];
-  "Distill + rank" [shape=box];
-  "Write .coding/" [shape=box];
-  "Report" [shape=box];
-  "Preflight" -> "Authority list" -> "Pass 1: declared rules" -> "Pass 2: enforced rules" -> "Distill + rank" -> "Write .coding/" -> "Report";
-}
-```
+Run these seven steps in order: **Preflight → Authority list → Pass 1 (declared) → Pass 2 (enforced) → Distill → Write `.coding/` → Report.** The one branch: if `gh` auth fails at Preflight, run local-only (config + `git log`) and skip Pass 2.
 
 ### 1. Preflight
 
-- Confirm `gh auth status` works and `git` is present. If `gh` is missing/unauthenticated, tell the user and continue **local-only** (Pass 1 + `git log`); skip PR mining.
+- Confirm `gh auth status` works and `git` is present. If `gh` is missing/unauthenticated, tell the user and continue **local-only**: build `.coding/` from Pass 1 only (config + `git log`); skip Pass 2 (PR-comment) mining, and mark the `Learned on` header `[LOCAL-ONLY]` so readers know the high-signal review data is absent.
 - Resolve the repo: `gh repo view --json nameWithOwner,defaultBranchRef`.
 - Check budget before any large mining: `gh api rate_limit --jq '.resources.core | {remaining, limit, reset}'`. If `remaining` is low, reduce `--limit`/page count and say so.
 
