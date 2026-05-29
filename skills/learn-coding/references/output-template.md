@@ -1,6 +1,6 @@
 # Output template for `.coding/coding-guidelines.md`
 
-`learn-coding` writes **one** file: `.coding/coding-guidelines.md`. **No `sources.md`, no evidence file.** `coding` and `fix-me-bug` read this file before every task, so keep it **strict and token-friendly** — short imperative lines, no prose padding, no restating generic best practice the baseline already covers. Only rules *specific to this team*.
+`learn-coding` writes **one** file: `.coding/coding-guidelines.md`, no evidence file.** It holds the team's **generalized conventions** — the patterns distilled from review comments, *not* a log of individual remarks. `coding` and `fix-me-bug` read this file before every task, so keep it **strict and token-friendly** — short imperative lines, no prose padding, no restating generic best practice the baseline already covers. Only conventions *specific to this team*.
 
 ---
 
@@ -43,6 +43,7 @@ Files reviewers flag most — take extra care:
 
 ## Rules for filling it in
 
+- **Generate conventions, not a comment log.** Lift the general rule behind recurring comments — several "X is unused" nits → _"remove unused vars/params/imports"_; repeated "use the shared type, don't inline it" → _"reuse shared/domain types, not inline shapes."_ Keep a convention literal only when it genuinely is (a named type, a required helper, a file not to touch).
 - **One strict imperative line per rule.** A coder complies just by reading it. Cut filler; add a `≤6-word why` only when not obvious.
 - **Most-enforced first** — order by how often team reviewers raise it.
 - **Team signal only.** Include a rule only if real team reviewers (OWNER/MEMBER/COLLABORATOR) raised it — ideally more than once, or in recent PRs. Bots and outside commenters don't count.

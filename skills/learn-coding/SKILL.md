@@ -24,7 +24,7 @@ This skill reads those comments (and the repo's config and code), **weights the 
 
 ## What it produces
 
-**One file** in the **target project's root**: `.coding/coding-guidelines.md` — the distilled, prioritized ruleset (short imperative DO/DON'T lines, most-enforced first). It is the single source of truth for `coding` and `fix-me-bug`, so keep it **strict and token-friendly**. See `references/output-template.md` for the exact format.
+**One file** in the **target project's root**: `.coding/coding-guidelines.md` — the team's **generalized conventions** distilled from review comments (short imperative DO/DON'T lines, most-enforced first; the pattern behind the comments, not a comment log). It is the single source of truth for `coding` and `fix-me-bug`, so keep it **strict and token-friendly**. See `references/output-template.md` for the exact format.
 
 No separate evidence/sources file — don't write one. Spend that effort reading **more** comments and **more recent closed/merged PRs** instead. Tell the user to **commit `.coding/`** so the whole team shares one learned standard.
 
@@ -96,7 +96,20 @@ Exact commands: see `references/gh-mining.md`.
 
 ### 5. Distill + rank
 
-Read **a lot** of comments before distilling — depth beats a tidy summary. Bias toward the **most recent closed/merged PRs**: they reflect the team's current standard, not abandoned old habits. Then turn recurring clusters into rules. A rule earns a place only if it is:
+Read **a lot** of comments before distilling — depth beats a tidy summary. Bias toward the **most recent closed/merged PRs**: they reflect the team's current standard, not abandoned old habits. Then turn recurring clusters into rules.
+
+**Generalize the comment into the convention.** A comment is an *instance*; the rule is the *pattern* behind it. Lift the general rule, don't copy the literal note:
+
+| Comment (instance) | Rule (generalized) |
+|--------------------|--------------------|
+| "this variable is unused" | Remove unused variables, params, and imports. |
+| "don't inline this — use the shared type" | Reuse shared/domain types, not inline object shapes. |
+| "these listeners are never removed" | Always clean up event listeners / subscriptions. |
+| "can we rename this to a clearer plural?" | Name collections with descriptive plural nouns. |
+
+Keep a rule **specific only when the convention itself is specific** (a named type, a required helper, a particular file not to touch). Don't over-generalize a genuine one-off into a sweeping law.
+
+A rule earns a place only if it is:
 
 - **Team-sourced** — raised by a real team reviewer (OWNER/MEMBER/COLLABORATOR), not a bot or outside commenter.
 - **Recurring or recent** — said more than once, or enforced in recent PRs. True one-offs → low-confidence section, or cut.
