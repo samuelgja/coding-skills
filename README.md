@@ -35,10 +35,28 @@ Works with Claude Code, Cursor, Codex, Copilot, Windsurf, Gemini, and more — t
 
 ## How it works
 
-```
-learn-coding  ──►  .coding/coding-guidelines.md  ──►  coding + fix-me-bug
-(mines PR comments,      (your team's rules,            (apply them to every
- weights maintainers)     committed & shared)            change you make)
+```mermaid
+flowchart LR
+    SRC["Your repo<br/><small>code · config · PR review comments</small>"]
+    LC(["learn-coding"])
+    DOC[".coding/<br/>coding-guidelines.md"]
+    CODE(["coding"])
+    FIX(["fix-me-bug"])
+    OUT["Review-ready code<br/><small>no repeat comments</small>"]
+
+    SRC -->|"mine · weight maintainers"| LC
+    LC -->|writes| DOC
+    DOC -->|new code| CODE
+    DOC -->|bug fixes| FIX
+    CODE --> OUT
+    FIX --> OUT
+
+    classDef skill fill:#1B9E77,stroke:#15805d,color:#F6F8F6,stroke-width:1px;
+    classDef doc fill:#E8F5EF,stroke:#1B9E77,color:#16181D,stroke-width:1px;
+    classDef io fill:#F4F5F4,stroke:#CBD2CE,color:#16181D,stroke-width:1px;
+    class LC,CODE,FIX skill;
+    class DOC doc;
+    class SRC,OUT io;
 ```
 
 Commit `.coding/` so the whole team shares one standard. No learned file yet? `coding` and `fix-me-bug` still work on a strict built-in baseline — run `learn-coding` to make them yours.
