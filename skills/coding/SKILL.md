@@ -16,7 +16,7 @@ Write code that **passes review the first time** — no coworker or team lead re
 Before writing or changing any code:
 
 1. Look for `.coding/coding-guidelines.md` in the project root (walk up from the working directory).
-2. **Found** → read it fully, including `.coding/sources.md` if you need the reasoning. These rules now take priority. Re-read it at the start of each coding task (it may have changed).
+2. **Found** → read it fully. These rules now take priority. Re-read it at the start of each coding task (it may have changed).
 3. **Missing** → say once: _"No `.coding/coding-guidelines.md` found — applying the generic baseline. Run `learn-coding` to make this project-specific."_ Then continue with the baseline. **Do not block.**
 
 Skipping Step 0 is the main failure mode. Reading a generic ruleset when a learned one exists means you'll get the exact comments the team already wrote down.

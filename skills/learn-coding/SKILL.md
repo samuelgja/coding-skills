@@ -24,18 +24,25 @@ This skill reads those comments (and the repo's config and code), **weights the 
 
 ## What it produces
 
-Two files in the **target project's root** (see `references/output-template.md` for the exact format):
+**One file** in the **target project's root**: `.coding/coding-guidelines.md` — the distilled, prioritized ruleset (short imperative DO/DON'T lines, most-enforced first). It is the single source of truth for `coding` and `fix-me-bug`, so keep it **strict and token-friendly**. See `references/output-template.md` for the exact format.
 
-| File | Contents |
-|------|----------|
-| `.coding/coding-guidelines.md` | The distilled, prioritized ruleset — DO / DON'T + why, ordered by enforcement frequency. The single source of truth for `coding`/`fix-me-bug`. |
-| `.coding/sources.md` | Evidence — the real review comments behind each rule (author, association, date, link, count). Makes rules auditable, not invented. |
-
-Tell the user to **commit `.coding/`** so the whole team shares one learned standard.
+No separate evidence/sources file — don't write one. Spend that effort reading **more** comments and **more recent closed/merged PRs** instead. Tell the user to **commit `.coding/`** so the whole team shares one learned standard.
 
 ## Workflow
 
-Run these seven steps in order: **Preflight → Authority list → Pass 1 (declared) → Pass 2 (enforced) → Distill → Write `.coding/` → Report.** The one branch: if `gh` auth fails at Preflight, run local-only (config + `git log`) and skip Pass 2.
+**First, post a TODO list of the plan** so the user sees exactly what's coming. Create one todo per step:
+
+1. Preflight — auth, repo, rate limit
+2. Build authority list — who counts (maintainers/team)
+3. Pass 1 — declared rules (config, CONTRIBUTING, CI, commits)
+4. Pass 2 — enforced rules (mine PR review comments)
+5. Distill + rank into rules
+6. Write `.coding/`
+7. Report
+
+Then work the list top to bottom, marking each item done as you go. The one branch: if `gh` auth fails at Preflight, run local-only (config + `git log`) and skip Pass 2.
+
+**Keep the run clean:** prefer the ready-made `jq` commands in `references/gh-mining.md` over ad-hoc scripts, and give a one-line result per step instead of dumping raw output.
 
 ### 1. Preflight
 
@@ -43,15 +50,21 @@ Run these seven steps in order: **Preflight → Authority list → Pass 1 (decla
 - Resolve the repo: `gh repo view --json nameWithOwner,defaultBranchRef`.
 - Check budget before any large mining: `gh api rate_limit --jq '.resources.core | {remaining, limit, reset}'`. If `remaining` is low, reduce `--limit`/page count and say so.
 
-### 2. Build the authority list (who to weight)
+### 2. Build the authority list (who counts — everyone else is noise)
 
-Reviewers are not equal. Comments from people who gate merges define the standard. Build the list in priority order:
+Reviewers are not equal. On a public repo **anyone** can comment — drive-by users and bots add opinions that are **not** the team's standard. Only count people who gate merges. Build the list in priority order:
 
 1. **CODEOWNERS** — the authoritative reviewers. Try `.github/CODEOWNERS`, `CODEOWNERS`, `docs/CODEOWNERS`.
 2. **Collaborators with write/admin** — `gh api repos/{owner}/{repo}/collaborators --jq '.[] | {login, role: .role_name}'`.
 3. **Top contributors** — proxy for maintainers when the above are unavailable.
 
-Weighting rule: a recurring point from an OWNER/MEMBER outranks a one-off from a drive-by CONTRIBUTOR. Carry the authority set into the `--jq select(...)` filters in Pass 2.
+**The filter — apply it to every comment in Pass 2:**
+- **KEEP** only `author_association` ∈ {`OWNER`, `MEMBER`, `COLLABORATOR`} — the team.
+- **DROP** outside commenters: `CONTRIBUTOR`, `FIRST_TIMER`, `FIRST_TIME_CONTRIBUTOR`, `NONE`, `MANNEQUIN`.
+- **DROP all bots**: `user.type == "Bot"`, or login ending in `[bot]` (Copilot, dependabot, github-actions, …).
+- **DROP** a PR author commenting on their own PR (self-notes, not review).
+
+Weighting: a recurring point from an `OWNER`/`MEMBER` outranks a one-off from a `COLLABORATOR`. Carry this filter into every Pass 2 `--jq select(...)`.
 
 ### 3. Pass 1 — declared rules (what the repo says)
 
@@ -74,7 +87,7 @@ Mine **repo-wide** (one paginated call beats per-PR loops). The repo-wide commen
 - **Review verdicts + summaries** (`/pulls/{n}/reviews`) — `CHANGES_REQUESTED` bodies say why a PR was blocked.
 - **PR conversation comments** (`/issues/{n}/comments`) — general discussion.
 
-Filter to `author_association` ∈ {OWNER, MEMBER, COLLABORATOR} and the authority list. Then find signal by frequency, not volume:
+Apply the Step 2 filter to **every** query — keep only team (OWNER/MEMBER/COLLABORATOR), drop bots and outside commenters. Then find signal by frequency, not volume:
 
 - Most-commented files (convention hotspots) and most-active reviewers (who sets the standard).
 - Cluster comments by theme (naming, tests, error handling, structure, …).
@@ -83,43 +96,44 @@ Exact commands: see `references/gh-mining.md`.
 
 ### 5. Distill + rank
 
-Turn clusters into rules. A rule is worth writing only if it is:
+Read **a lot** of comments before distilling — depth beats a tidy summary. Bias toward the **most recent closed/merged PRs**: they reflect the team's current standard, not abandoned old habits. Then turn recurring clusters into rules. A rule earns a place only if it is:
 
-- **Recurring** — said more than once, or by an owner with authority. One-offs go in a low-confidence section, not the main list.
+- **Team-sourced** — raised by a real team reviewer (OWNER/MEMBER/COLLABORATOR), not a bot or outside commenter.
+- **Recurring or recent** — said more than once, or enforced in recent PRs. True one-offs → low-confidence section, or cut.
 - **Actionable** — a coder can comply: _"name booleans `isX`/`hasX`"_, not _"write clean code."_
-- **Observable** — phrased against a diff where possible (_"every logic change adds a test,"_ _"no `console.log` in committed code"_) so it's checkable.
-- **Evidence-backed** — at least one real comment in `sources.md`.
+- **Observable** — phrased against a diff where possible (_"every logic change adds a test,"_ _"no `console.log` in committed code"_).
 
-Order rules by enforcement frequency (most-flagged first). Reconcile contradictions toward the most recent / highest-authority signal and note the conflict.
+Don't restate generic best practice the baseline already covers — only what's *specific to this team*. Order by enforcement frequency (most-flagged first). On conflict, prefer the most recent / highest-authority signal.
 
-### 6. Write `.coding/`
+### 6. Write `.coding/coding-guidelines.md`
 
-- Create `.coding/` in the project root if absent.
-- Write `coding-guidelines.md` and `sources.md` using `references/output-template.md`.
+- Create `.coding/` in the project root if absent. Write the **single** file `coding-guidelines.md` using `references/output-template.md`. **No `sources.md`** — don't create one.
+- Keep it **strict and token-friendly**: short imperative lines, most-enforced first, no padding (the file is read by an agent before every task).
 - **Re-run = regenerate**, don't blindly append: rebuild the ruleset, update the `Learned on` date, and preserve any user-added `## Manual overrides` section verbatim (see template).
 
 ### 7. Report
 
-Tell the user: repo + branch mined, # PRs / comments analyzed, authority set used, top 5 recurring rules, confidence/gaps, and `gh` rate-limit remaining. Remind them to commit `.coding/`.
+Tell the user (briefly): repo + branch mined, # comments / recent PRs analyzed, team reviewers counted, top 5 rules, and `gh` rate-limit remaining. Remind them to commit `.coding/`.
 
 ## Privacy & safety
 
 - Read-only mining. Never post comments, never push, never alter the target repo.
-- `sources.md` quotes public review comments with author handles and links — these are already public on the repo. Don't include anything beyond what the GitHub API returns.
+- The guidelines may paraphrase what reviewers enforce; don't include anything beyond what the public GitHub API returns.
 
 ## Common mistakes
 
 | Mistake | Fix |
 |---------|-----|
-| Dumping every comment | Rank by frequency/authority; keep the top recurring rules. |
-| Treating all reviewers equally | Weight CODEOWNERS / OWNER / MEMBER. |
-| Inventing rules with no evidence | Every rule needs a `sources.md` entry. Cut the rest. |
-| Vague rules ("be consistent") | Make them actionable and observable. |
+| Writing a `sources.md` / evidence file | Don't. One file only: `coding-guidelines.md`. Spend the effort reading more comments. |
+| Counting bots / outside commenters | Keep only team (OWNER/MEMBER/COLLABORATOR); drop `[bot]` users and CONTRIBUTOR/NONE. |
+| Skimming a few comments | Read many, and weight recent closed/merged PRs — that's where the current standard lives. |
+| Restating generic best practice | Only write rules *specific to this team*; the baseline covers the rest. |
+| Verbose, padded rules | One strict imperative line each; token-friendly. |
 | Per-PR API loops | Use repo-wide `--paginate` endpoints; gate on `rate_limit`. |
 | Appending forever on re-run | Regenerate; keep only the `## Manual overrides` section. |
 | Failing hard when `gh` is absent | Degrade to local-only Pass 1 + `git log`; say what was skipped. |
 
 ## Reference
 
-- `references/gh-mining.md` — exact, copy-pasteable `gh`/`git` command cookbook (authority list, comment surfaces, frequency ranking, pagination, rate limits).
-- `references/output-template.md` — the precise `.coding/coding-guidelines.md` and `.coding/sources.md` format.
+- `references/gh-mining.md` — exact, copy-pasteable `gh`/`git` command cookbook (team-only + bot filter, recency sort, comment surfaces, frequency ranking, pagination, rate limits).
+- `references/output-template.md` — the precise `.coding/coding-guidelines.md` format (single file, strict, token-friendly).

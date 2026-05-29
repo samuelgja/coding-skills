@@ -95,18 +95,24 @@ In `gh`, `open` / `closed` / `merged` are **mutually exclusive** states (GraphQL
 The repo-wide endpoints below return review comments from PRs of **every state** (open + closed + merged) in one paginated pass — no need to loop per PR or per state.
 
 ```bash
-# ALL inline review comments across the repo (open + closed + merged PRs), authoritative authors only
-gh api --paginate repos/{owner}/{repo}/pulls/comments --jq '.[]
-  | select(.author_association=="OWNER" or .author_association=="MEMBER" or .author_association=="COLLABORATOR")
-  | {user: .user.login, assoc: .author_association, path, line, body, url: .html_url, created_at}'
+# Team-only filter — reuse in EVERY comment query. Keeps OWNER/MEMBER/COLLABORATOR;
+# drops bots ([bot] login or type "Bot": Copilot, dependabot, github-actions) and outside commenters.
+TEAM='select((.author_association=="OWNER" or .author_association=="MEMBER" or .author_association=="COLLABORATOR") and (.user.type!="Bot") and ((.user.login|endswith("[bot]"))|not))'
+
+# ALL inline review comments across the repo (any PR state), team only, most RECENT first
+gh api --paginate "repos/{owner}/{repo}/pulls/comments?per_page=100&sort=created&direction=desc" \
+  --jq ".[] | $TEAM | {user: .user.login, assoc: .author_association, path, line, body, url: .html_url, created_at}"
 ```
+
+Read **many** comments and bias toward **recent** ones (the `sort=created&direction=desc` above) — recent closed/merged PRs reflect the team's current standard. Drop self-comments (PR author on own PR) when you have the author handle.
 
 ### Per-PR (when you need verdicts/context for a specific PR)
 
 ```bash
-gh api repos/{owner}/{repo}/pulls/{n}/comments --jq '.[] | {user: .user.login, assoc: .author_association, path, line, diff_hunk, body, created_at}'
-gh api repos/{owner}/{repo}/pulls/{n}/reviews  --jq '.[] | select(.author_association=="OWNER" or .author_association=="MEMBER") | {user: .user.login, state, body, submitted_at}'
-gh api repos/{owner}/{repo}/issues/{n}/comments --jq '.[] | {user: .user.login, assoc: .author_association, body, created_at}'
+# (uses $TEAM from the block above)
+gh api repos/{owner}/{repo}/pulls/{n}/comments --jq ".[] | $TEAM | {user: .user.login, assoc: .author_association, path, line, diff_hunk, body, created_at}"
+gh api repos/{owner}/{repo}/pulls/{n}/reviews  --jq ".[] | $TEAM | {user: .user.login, state, body, submitted_at}"
+gh api repos/{owner}/{repo}/issues/{n}/comments --jq ".[] | $TEAM | {user: .user.login, assoc: .author_association, body, created_at}"
 
 # Or via gh pr view (auto-resolves repo from cwd)
 gh pr view N --json reviews,comments,number,title,author
@@ -117,11 +123,11 @@ gh pr view N --json reviews,comments,number,title,author
 ## 4. Find the signal — rank by frequency
 
 ```bash
-# Convention hotspots: files that attract the most review comments
-gh api --paginate repos/{owner}/{repo}/pulls/comments --jq '.[].path' | sort | uniq -c | sort -rn | head -20
+# (set $TEAM from §3 first) Convention hotspots: files TEAM reviewers flag most
+gh api --paginate repos/{owner}/{repo}/pulls/comments --jq ".[] | $TEAM | .path" | sort | uniq -c | sort -rn | head -20
 
-# Standard-setters: reviewers by comment volume
-gh api --paginate repos/{owner}/{repo}/pulls/comments --jq '.[].user.login' | sort | uniq -c | sort -rn | head -20
+# Standard-setters: TEAM reviewers by comment volume
+gh api --paginate repos/{owner}/{repo}/pulls/comments --jq ".[] | $TEAM | .user.login" | sort | uniq -c | sort -rn | head -20
 ```
 
 Then cluster the comment bodies by theme (naming, tests, error handling, structure, performance, security) and keep themes that recur or come from the authority list.

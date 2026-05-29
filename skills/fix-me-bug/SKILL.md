@@ -9,6 +9,16 @@ description: Use when fixing any bug, regression, failing test, crash, or unexpe
 
 **Also:** a fix is still a code change — it gets reviewed. Before editing, read `.coding/coding-guidelines.md` (if present) so the fix matches the team's conventions and doesn't earn a fresh round of review comments. Missing? Apply the generic baseline and continue.
 
+## First: post a TODO list
+
+Before touching code, show the plan as a short TODO list (one todo each), then work it top to bottom:
+
+1. Read `.coding/coding-guidelines.md` (if present)
+2. Triage — FAST or DEEP path
+3. Write a failing test that reproduces the bug
+4. Make the minimal root-cause fix
+5. Verify — full suite + lint/types + convention check
+
 ## Step 1: Triage — pick your path
 
 Read the report. Ask: **Can I write a failing test right now?**

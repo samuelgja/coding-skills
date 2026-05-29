@@ -1,78 +1,52 @@
-# Output template for `.coding/`
+# Output template for `.coding/coding-guidelines.md`
 
-`learn-coding` writes these two files to the **target project root**. `coding` and `fix-me-bug` read `coding-guidelines.md`. Keep both files concise and scannable — they get loaded by an agent before every task.
+`learn-coding` writes **one** file: `.coding/coding-guidelines.md`. **No `sources.md`, no evidence file.** `coding` and `fix-me-bug` read this file before every task, so keep it **strict and token-friendly** — short imperative lines, no prose padding, no restating generic best practice the baseline already covers. Only rules *specific to this team*.
 
 ---
-
-## `.coding/coding-guidelines.md`
 
 ````markdown
 # Coding Guidelines — <owner/repo>
 
-> Learned by `learn-coding` on <YYYY-MM-DD> from <N> PRs / <M> review comments.
-> Evidence: see `.coding/sources.md`. Re-run `learn-coding` to refresh.
+> Learned by learn-coding on <YYYY-MM-DD> from <N> team review comments across <M> recent PRs.
+> Re-run learn-coding to refresh.
 
-## How to read this
-Rules are ordered by how often the team enforces them — top = most-flagged in review.
-Each rule is one actionable line. `[E#]` links to evidence in `sources.md`.
-
-## Team rules (learned)
+## Rules — most-enforced first
 
 ### Naming & style
-- DO: <rule>. <why> `[E1]`
-- DON'T: <rule>. <why> `[E2]`
+- <strict imperative rule>
+- ...
 
 ### Structure & architecture
-- DO: <rule>. <why> `[E3]`
+- ...
 
 ### Error handling
 - ...
 
 ### Testing
-- DO: <rule>. <why> `[E4]`
+- ...
 
 ### PRs & commits
-- DO: <rule>. <why> `[E5]`
+- ...
 
-### Language / framework specifics
-- <stack-specific rules, e.g. React, Go, Python>
+### <language / framework> specifics
+- ...
 
-## Most-commented areas
-Files/paths reviewers touch most (write extra-carefully here):
-- `<path>` — <theme> `[E#]`
-
-## Confidence & gaps
-- Low-confidence (seen once / single author): <list>
-- Not yet observed (baseline applies): <areas with no review signal>
+## Hotspots
+Files reviewers flag most — take extra care:
+- `<path>` — <what gets flagged here>
 
 ## Manual overrides
-<!-- Anything the team writes here is preserved across re-runs and WINS over learned rules. -->
+<!-- Team edits below are preserved across re-runs and WIN over learned rules. -->
 ````
-
-**Rules for filling this in**
-
-- Most-enforced rules first. Each rule actionable + observable; attach `[E#]`.
-- No rule without evidence in `sources.md`. Generic best practice with no team signal → leave it to the baseline, don't restate it here.
-- On contradiction, prefer the most recent / highest-authority signal and note it under Confidence & gaps.
-- **Re-run = regenerate**: rebuild everything except the `## Manual overrides` block, which you copy across verbatim. Update the `Learned on` line.
 
 ---
 
-## `.coding/sources.md`
+## Rules for filling it in
 
-````markdown
-# Evidence — <owner/repo>
-
-> Real review comments behind each rule in `coding-guidelines.md`. Generated <YYYY-MM-DD>.
-
-## Authority weighting used
-Comments from these accounts were weighted highest:
-- `@<login>` — CODEOWNERS / OWNER / MEMBER / role
-- ...
-
-- **[E1]** "<verbatim comment>" — `@reviewer` (OWNER), PR #123, 2026-04-02. <link>. Seen ~7× across PRs.
-- **[E2]** "<verbatim comment>" — `@reviewer` (MEMBER), PR #98. <link>. Seen ~4×.
-- ...
-````
-
-Keep evidence to the highest-signal comments (the ones that recur or come from authority). Quote verbatim; include author, association, PR #, date, link, and approximate frequency.
+- **One strict imperative line per rule.** A coder complies just by reading it. Cut filler; add a `≤6-word why` only when not obvious.
+- **Most-enforced first** — order by how often team reviewers raise it.
+- **Team signal only.** Include a rule only if real team reviewers (OWNER/MEMBER/COLLABORATOR) raised it — ideally more than once, or in recent PRs. Bots and outside commenters don't count.
+- **Specific, not generic.** If the strict baseline already covers it, don't restate it. This file is what makes `coding` *team-specific*.
+- **No evidence file.** Don't write `sources.md`. If a rule's origin is genuinely non-obvious you may append one short PR link in parens — but prefer reading *more* comments over documenting them.
+- **Recency wins** on conflict: prefer what recent closed/merged PRs enforce.
+- **Token-friendly.** This file is loaded before every coding task — keep it lean.
